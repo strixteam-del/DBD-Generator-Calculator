@@ -48,6 +48,17 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3), 0 4px 6px -2px rgba(239, 68, 68, 0.15);
         }
+        .dbd-button-secondary {
+            background-color: #4a5568;
+            color: #e2e8f0;
+             transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.16);
+        }
+        .dbd-button-secondary:hover {
+             background-color: #718096;
+             transform: translateY(-2px);
+             box-shadow: 0 10px 15px -3px rgba(113, 128, 150, 0.3), 0 4px 6px -2px rgba(113, 128, 150, 0.15);
+        }
         .dbd-button:disabled {
             background-color: #4a5568;
             cursor: not-allowed;
@@ -96,9 +107,43 @@
                 <input type="number" id="generator-charges" value="90" min="1" class="dbd-input w-1/2 md:w-1/4 p-2 rounded-md text-center text-lg">
             </section>
 
+            <!-- Info Panel -->
+            <section class="border-b border-gray-700 py-4 px-2 text-gray-400 text-sm">
+                <h3 class="text-xl tracking-wider text-center text-gray-300 mb-3">How It Works</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-bold text-white">Generators & Charges</h4>
+                        <p>A standard generator requires <span class="font-bold text-white">90 charges</span> to complete. A survivor repairs at a base speed of <span class="font-bold text-white">1 charge per second (c/s)</span>. This means a solo survivor with no perks takes 90 seconds.</p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white">Toolboxes & Speed</h4>
+                        <p>Toolboxes increase your repair speed, but only while they have charges. The charges are consumed at the same rate as your final repair speed.</p>
+                        <p class="mt-2 pl-2 border-l-2 border-gray-600">
+                            <span class="font-bold text-gray-300">Example:</span> A <span class="text-white">Mechanic's Toolbox</span> gives a <span class="text-white">+75%</span> speed boost. Your repair speed becomes <span class="font-mono text-white">1.75 c/s</span>. The toolbox's 16 charges are also consumed at <span class="font-mono text-white">1.75 c/s</span>, so the effect lasts for about 9.14 seconds (16 ÷ 1.75).
+                        </p>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-white">Add-ons & Co-op</h4>
+                         <ul class="list-disc list-inside space-y-2 pl-2">
+                            <li><span class="font-bold text-white">Charge Add-ons</span> (e.g., Wire Spool) add more charges, making your toolbox speed boost last longer.</li>
+                            <li><span class="font-bold text-white">Speed Add-ons</span> (e.g., Socket Swivels) stack with the toolbox's bonus for an even faster repair speed.</li>
+                            <li>
+                                <span class="font-bold text-white">Co-op Penalty:</span> Each additional survivor on a gen reduces <span class="italic">everyone's</span> efficiency by 15%.
+                                <p class="mt-1 pl-4 border-l-2 border-gray-600 text-xs">
+                                    <span class="font-bold text-gray-300">Example:</span> Imagine Survivor A has the <span class="text-white">1.75 c/s</span> speed from the toolbox above. Survivor B (no toolbox, 1 c/s) joins them. The 15% penalty is applied to both:
+                                    <br> - Survivor A's speed becomes <span class="font-mono text-white">1.75 * 0.85 = 1.49 c/s</span>.
+                                    <br> - Survivor B's speed becomes <span class="font-mono text-white">1.00 * 0.85 = 0.85 c/s</span>.
+                                    <br> Their combined speed is <span class="font-mono text-white">2.34 c/s</span>, not 2.75 c/s.
+                                </p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
             <!-- Survivors Section -->
             <section>
-                <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2 mb-6">
+                <div class="flex justify-between items-center border-b-2 border-gray-700 pb-2 mb-6 pt-4">
                      <h2 class="text-3xl tracking-wider">Survivors</h2>
                 </div>
                 <div id="survivors-container" class="space-y-6">
@@ -108,7 +153,10 @@
 
             <!-- Calculation and Result -->
             <section class="text-center pt-6">
-                <button id="calculate" class="dbd-button w-full md:w-2/3 py-3 rounded-lg text-3xl tracking-widest">Calculate</button>
+                <div class="flex gap-4 justify-center">
+                    <button id="calculate" class="dbd-button w-1/2 py-3 rounded-lg text-3xl tracking-widest">Calculate</button>
+                    <button id="reset" class="dbd-button-secondary w-1/3 py-3 rounded-lg text-3xl tracking-widest">Reset</button>
+                </div>
                 <div id="result-container" class="mt-8 bg-gray-900/70 p-4 rounded-lg hidden">
                     <h3 class="text-2xl tracking-wider dbd-red">Total Completion Time</h3>
                     <p id="result" class="text-4xl font-bold text-white"></p>
@@ -151,6 +199,7 @@
 
             const survivorsContainer = document.getElementById('survivors-container');
             const calculateBtn = document.getElementById('calculate');
+            const resetBtn = document.getElementById('reset');
             const breakdownContainer = document.getElementById('calculation-breakdown');
 
             const populateSelect = (select, data, type) => {
@@ -184,7 +233,7 @@
                         <h3 class="survivor-title text-xl font-bold tracking-wider">Survivor ${index + 1}</h3>
                         <div class="flex items-center space-x-2">
                             <label class="text-sm font-medium text-gray-400">On Generator?</label>
-                            <input type="checkbox" class="on-generator-checkbox h-4 w-4 rounded dbd-input text-red-600 focus:ring-red-500 border-gray-600" checked>
+                            <input type="checkbox" class="on-generator-checkbox h-4 w-4 rounded dbd-input text-red-600 focus:ring-red-500 border-gray-600" ${isFirst ? 'checked' : ''}>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -192,12 +241,7 @@
                         <div><label class="block text-sm font-medium text-gray-400 mb-1">Add-on 1</label><select class="addon1-select dbd-input w-full p-2 rounded-md"></select></div>
                         <div><label class="block text-sm font-medium text-gray-400 mb-1">Add-on 2</label><select class="addon2-select dbd-input w-full p-2 rounded-md"></select></div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4 pt-2">
-                        <div class="flex items-center space-x-2">
-                            ${isFirst ? `
-                            <input type="checkbox" class="prove-thyself-checkbox h-4 w-4 rounded dbd-input text-red-600 focus:ring-red-500 border-gray-600">
-                            <label class="text-sm font-medium text-gray-400">Prove Thyself</label>` : ''}
-                        </div>
+                    <div class="grid grid-cols-1 gap-4 pt-2">
                         <div class="flex items-center gap-2">
                             <label class="text-sm font-medium text-gray-400 whitespace-nowrap">Perk Bonus %</label>
                             <input type="number" value="0" min="0" class="perk-bonus-input dbd-input w-full p-1 rounded-md text-center" placeholder="e.g. 9">
@@ -206,6 +250,26 @@
                 `;
                 survivorsContainer.appendChild(card);
                 return card;
+            };
+
+            const resetAll = () => {
+                document.getElementById('generator-charges').value = 90;
+                const allSurvivorDivs = document.querySelectorAll('.survivor-card');
+                allSurvivorDivs.forEach((div, index) => {
+                    div.querySelector('.on-generator-checkbox').checked = (index === 0);
+                    div.querySelector('.toolbox-select').value = 'none';
+                    div.querySelector('.addon1-select').value = 'none';
+                    div.querySelector('.addon2-select').value = 'none';
+                    div.querySelector('.perk-bonus-input').value = 0;
+                    
+                    // Trigger change to re-evaluate disabled status of addons
+                    div.querySelector('.toolbox-select').dispatchEvent(new Event('change'));
+                });
+
+                const resultContainer = document.getElementById('result-container');
+                resultContainer.classList.add('hidden');
+                resultContainer.classList.remove('fade-in-up');
+                breakdownContainer.innerHTML = `<p class="text-gray-500 text-center pt-8">Click "Calculate" to see the details.</p>`;
             };
 
             const initializeSurvivorCards = () => {
@@ -294,20 +358,12 @@
 
                 const coopPenalty = (numSurvivors - 1) * 15;
                 const coopFactor = 1.0 - (coopPenalty / 100);
-            
-                const survivor1Card = document.getElementById('survivor-card-1');
-                const proveThyselfActive = survivor1Card.querySelector('.prove-thyself-checkbox')?.checked && survivor1Card.querySelector('.on-generator-checkbox').checked;
 
                 let survivors = [];
                 let breakdownInfo = [];
 
                 activeSurvivorDivs.forEach((div, i) => {
                     const individualPerkBonus = parseFloat(div.querySelector('.perk-bonus-input').value) || 0;
-                    
-                    let proveBonus = 0;
-                    if (proveThyselfActive && div.id !== 'survivor-card-1') {
-                        proveBonus = 10;
-                    }
 
                     const toolboxKey = div.querySelector('.toolbox-select').value;
                     const addon1Key = div.querySelector('.addon1-select').value;
@@ -319,7 +375,7 @@
             
                     const totalCharges = toolbox.charges + (addon1.charges || 0) + (addon2.charges || 0);
                     const itemSpeedModifier = toolbox.speedModifier + (addon1.speedModifier - 1) + (addon2.speedModifier - 1);
-                    const totalPerkBonus = individualPerkBonus + proveBonus;
+                    const totalPerkBonus = individualPerkBonus;
                     const baseSpeedWithPerks = 1 * (1 + totalPerkBonus / 100);
             
                     let speedWithItem;
@@ -346,7 +402,16 @@
                         finalSpeedWithItem: speedWithItem,
                         finalSpeedWithoutItem: speedWithoutItem,
                         timeToDeplete: timeToDeplete,
-                        initialCharges: totalCharges
+                        initialCharges: totalCharges,
+                        perkDetails: {
+                            base: 1,
+                            personal: individualPerkBonus,
+                        },
+                        itemDetails: {
+                            toolbox: (toolbox.speedModifier - 1),
+                            addon1: (addon1.speedModifier - 1),
+                            addon2: (addon2.speedModifier - 1)
+                        }
                     });
             
                     survivors.push({
@@ -361,6 +426,7 @@
             
                 let repairTime = 0;
                 let chargesDone = 0;
+                let eventLog = [];
             
                 while (chargesDone < genChargesRemaining) {
                     let currentTotalSpeed = survivors.reduce((acc, s) => acc + (s.itemDepleted ? s.speedWithoutItem : s.speedWithItem), 0);
@@ -371,9 +437,12 @@
                     }
             
                     let nextEventTime = Infinity;
-                    survivors.forEach(s => {
+                    let depletedSurvivorName = null;
+
+                    survivors.forEach((s, i) => {
                         if (!s.itemDepleted && s.timeToDeplete < nextEventTime) {
                             nextEventTime = s.timeToDeplete;
+                            depletedSurvivorName = breakdownInfo[i].name;
                         }
                     });
             
@@ -381,6 +450,14 @@
                     const timeToFinish = remainingCharges / currentTotalSpeed;
             
                     const timeElapsedThisStep = Math.min(timeToFinish, nextEventTime);
+
+                    eventLog.push({
+                        start: repairTime.toFixed(2),
+                        end: (repairTime + timeElapsedThisStep).toFixed(2),
+                        speed: currentTotalSpeed.toFixed(2),
+                        charges: (timeElapsedThisStep * currentTotalSpeed).toFixed(2),
+                        depleted: null
+                    });
 
                     survivors.forEach(s => {
                         if (!s.itemDepleted) {
@@ -392,13 +469,14 @@
                         repairTime += timeToFinish;
                         break;
                     } else {
+                        eventLog[eventLog.length - 1].depleted = `${depletedSurvivorName}'s toolbox runs out.`;
                         repairTime += nextEventTime;
                         chargesDone += currentTotalSpeed * nextEventTime;
             
                         survivors.forEach(s => {
                             if (!s.itemDepleted) {
                                 s.timeToDeplete -= nextEventTime;
-                                if (s.timeToDeplete <= 1e-9) { // Epsilon for float comparison
+                                if (s.timeToDeplete <= 1e-9) {
                                     s.itemDepleted = true;
                                 }
                             }
@@ -424,7 +502,6 @@
                     resultEl.textContent = `${totalTime.toFixed(2)} seconds`;
                 }
 
-                const initialTotalSpeed = breakdownInfo.reduce((acc, b) => acc + b.finalSpeedWithItem, 0);
                 const remainingChargesHtml = breakdownInfo.filter(b => b.hasItem).map(b => `
                     <div class="flex justify-between">
                         <span>${b.name}:</span>
@@ -434,34 +511,43 @@
 
                 breakdownContainer.innerHTML = `
                     <div class="bg-gray-900/50 p-3 rounded-md border border-gray-700">
-                        <p><span class="font-bold">Active Survivors:</span> ${numSurvivors}</p>
-                        <p><span class="font-bold">Co-op Penalty:</span> <span class="dbd-red">-${coopPenalty}%</span> (x${coopFactor.toFixed(2)} total speed)</p>
+                        <h3 class="font-bold text-lg text-center tracking-wider mb-2">General Info</h3>
+                        <div class="flex justify-between text-sm"><span>Gen Charges to Repair:</span><span class="font-mono text-white">${genTotalCharges.toFixed(1)}</span></div>
+                        ${bnpCount > 0 ? `<div class="flex justify-between text-sm"><span>BNP Reduction:</span><span class="font-mono dbd-red">-${(bnpCount * 10).toFixed(1)}</span></div>
+                        <div class="flex justify-between text-sm font-bold border-t border-gray-600 mt-1 pt-1"><span>Final Charges Required:</span><span class="font-mono text-white">${genChargesRemaining.toFixed(1)}</span></div>` : ''}
+                        <div class="flex justify-between text-sm mt-2"><span>Active Survivors:</span><span class="font-mono text-white">${numSurvivors}</span></div>
+                        <div class="flex justify-between text-sm"><span>Co-op Penalty:</span><span class="font-mono dbd-red">-${coopPenalty}%</span></div>
                     </div>
-                    ${bnpCount > 0 ? `
-                    <div class="bg-gray-900/50 p-3 rounded-md border border-gray-700">
-                        <p class="font-bold">Brand New Part(s) Used: ${bnpCount}</p>
-                        <p>Instant Progress: <span class="text-white">${(bnpCount * 10).toFixed(1)} charges</span></p>
-                        <p>Charges Left to Repair: <span class="text-white">${genChargesRemaining.toFixed(1)}</span></p>
-                    </div>` : ''}
+                    
                     <div class="space-y-3 pt-2">
+                        <h3 class="font-bold text-lg text-center tracking-wider mt-2">Survivor Speeds</h3>
                         ${breakdownInfo.map(b => `
                             <div class="bg-gray-900/50 p-3 rounded-md text-sm border border-gray-700">
-                                <p class="font-bold text-base">${b.name} (${b.item})</p>
-                                <p class="text-gray-400">Potential Speed: <span class="font-mono" title="Speed from perks and items before co-op penalty">${b.potentialSpeed.toFixed(2)} c/s</span></p>
-                                ${b.hasItem ? `
-                                    <p>&#x21B3; Actual Speed (w/ Item): <span class="text-white font-mono">${b.finalSpeedWithItem.toFixed(2)} c/s</span> for ${b.timeToDeplete.toFixed(2)}s</p>
-                                    <p>&#x21B3; Actual Speed (no Item): <span class="text-gray-400 font-mono">${b.finalSpeedWithoutItem.toFixed(2)} c/s</span></p>
-                                ` : `
-                                    <p>&#x21B3; Actual Speed: <span class="text-white font-mono">${b.finalSpeedWithItem.toFixed(2)} c/s</span></p>
-                                `}
+                                <p class="font-bold text-base text-white">${b.name} <span class="text-gray-400 text-xs">(${b.item})</span></p>
+                                <div class="text-xs space-y-1 mt-2 text-gray-400">
+                                    <div class="flex justify-between"><span>Base Speed:</span><span class="font-mono">+100%</span></div>
+                                    <div class="flex justify-between"><span>Toolbox:</span><span class="font-mono">+${(b.itemDetails.toolbox * 100).toFixed(0)}%</span></div>
+                                    <div class="flex justify-between"><span>Addons:</span><span class="font-mono">+${((b.itemDetails.addon1 + b.itemDetails.addon2) * 100).toFixed(0)}%</span></div>
+                                    <div class="flex justify-between"><span>Perks:</span><span class="font-mono">+${(b.perkDetails.personal).toFixed(0)}%</span></div>
+                                    <div class="flex justify-between font-bold border-t border-gray-600 mt-1 pt-1 text-white"><span>Potential Speed:</span><span class="font-mono">${b.potentialSpeed.toFixed(2)} c/s</span></div>
+                                    <div class="flex justify-between text-gray-400"><span>Co-op Penalty (x${coopFactor.toFixed(2)}):</span><span class="font-mono dbd-red">-${((1-coopFactor)*b.potentialSpeed).toFixed(2)}</span></div>
+                                    <div class="flex justify-between font-bold border-t border-gray-600 mt-1 pt-1 text-white"><span>Actual Speed:</span><span class="font-mono">${b.finalSpeedWithItem.toFixed(2)} c/s</span></div>
+                                </div>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="bg-gray-900/50 p-3 rounded-md mt-2 text-center border border-gray-700">
-                        <p class="font-bold">Initial Combined Speed</p>
-                        <p class="text-2xl font-mono text-white">${initialTotalSpeed.toFixed(2)} c/s</p>
-                        <p class="text-xs text-gray-400 mt-1">${genChargesRemaining.toFixed(1)} charges / ${initialTotalSpeed.toFixed(2)} c/s = ~${(genChargesRemaining / initialTotalSpeed).toFixed(2)}s repair time</p>
+
+                    <div class="space-y-3 pt-2">
+                         <h3 class="font-bold text-lg text-center tracking-wider mt-2">Repair Timeline</h3>
+                        ${eventLog.map(e => `
+                            <div class="bg-gray-900/50 p-2 rounded-md text-xs border border-gray-700">
+                                <p class="font-bold"><span class="font-mono text-white">${e.start}s - ${e.end}s</span></p>
+                                <p class="text-gray-300">Combined speed of <span class="font-mono text-white">${e.speed} c/s</span> repairs <span class="font-mono text-white">${e.charges}</span> charges.</p>
+                                ${e.depleted ? `<p class="text-amber-400 text-xs mt-1 italic">${e.depleted}</p>`: ''}
+                            </div>
+                        `).join('')}
                     </div>
+
                     ${remainingChargesHtml ? `
                     <div class="bg-gray-900/50 p-3 rounded-md mt-4 border border-gray-700">
                         <p class="font-bold text-center text-lg">Remaining Toolbox Charges</p>
@@ -474,6 +560,7 @@
             };
 
             calculateBtn.addEventListener('click', calculateTime);
+            resetBtn.addEventListener('click', resetAll);
 
             initializeSurvivorCards();
         });
@@ -481,5 +568,6 @@
 
 </body>
 </html>
+
 
 
